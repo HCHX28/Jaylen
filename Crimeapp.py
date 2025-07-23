@@ -76,12 +76,36 @@ st.markdown("""
         font-family: 'Times New Roman', serif !important;
     }
     
-    /* Selectbox BLACK */
+    /* Selectbox BLACK with proper visibility */
     .stSelectbox > div > div {
         background-color: #000000 !important;
         color: #FFFFFF !important;
         font-family: 'Times New Roman', serif !important;
         border: 1px solid #FFFFFF !important;
+    }
+    
+    /* Selectbox dropdown options */
+    .stSelectbox div[data-baseweb="select"] > div {
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
+        border: 1px solid #FFFFFF !important;
+    }
+    
+    /* Selectbox dropdown menu */
+    div[role="listbox"] {
+        background-color: #000000 !important;
+        border: 1px solid #FFFFFF !important;
+    }
+    
+    /* Selectbox dropdown options */
+    div[role="option"] {
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
+    }
+    
+    div[role="option"]:hover {
+        background-color: #333333 !important;
+        color: #FFFFFF !important;
     }
     
     /* All text WHITE */
@@ -179,7 +203,12 @@ class SecuroChatbot:
 
 **Anonymous Tips:** Crime Stoppers (869) 465-8474
 
-Remember: Your safety comes first."""
+Remember: Your safety comes first.
+
+**Quick Dial Instructions:**
+• From mobile: Dial number directly
+• From landline: May need to dial 1 + area code first
+• From hotel: Ask reception for outside line"""
 
     def get_safety_tips(self, category=None):
         if category and category in self.safety_tips:
@@ -228,7 +257,11 @@ Remember: Your safety comes first."""
 • Crime Stoppers: (869) 465-8474
 • Disaster Management: (869) 466-5100
 
-Save these numbers in your phone."""
+Save these numbers in your phone.
+
+**To make a call:**
+• Mobile: Just dial the number directly
+• If calling from hotel: Ask front desk for outside line access"""
 
     def get_tourist_specific_info(self):
         return """**Tourist Safety**
