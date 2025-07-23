@@ -8,6 +8,118 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Custom CSS for dark theme and Times New Roman font
+st.markdown("""
+<style>
+    /* Import Times New Roman font */
+    @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap');
+    
+    /* Main app background */
+    .main .block-container {
+        background-color: #0E1117;
+        color: #FAFAFA;
+        font-family: 'Times New Roman', serif;
+    }
+    
+    /* Sidebar styling */
+    .css-1d391kg {
+        background-color: #262730;
+    }
+    
+    /* Headers */
+    h1, h2, h3 {
+        color: #FF6B6B !important;
+        font-family: 'Times New Roman', serif !important;
+        text-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+    }
+    
+    /* Chat messages */
+    .stChatMessage {
+        background-color: #1E1E1E !important;
+        border: 1px solid #333 !important;
+        border-radius: 10px !important;
+        font-family: 'Times New Roman', serif !important;
+    }
+    
+    /* User messages */
+    .stChatMessage[data-testid="user-message"] {
+        background-color: #2D2D2D !important;
+        border-left: 3px solid #FF6B6B !important;
+    }
+    
+    /* Assistant messages */
+    .stChatMessage[data-testid="assistant-message"] {
+        background-color: #1A1A1A !important;
+        border-left: 3px solid #4ECDC4 !important;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background-color: #FF6B6B !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-family: 'Times New Roman', serif !important;
+        font-weight: bold !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 2px 5px rgba(255, 107, 107, 0.2) !important;
+    }
+    
+    .stButton > button:hover {
+        background-color: #FF5252 !important;
+        box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4) !important;
+        transform: translateY(-2px) !important;
+    }
+    
+    /* Chat input */
+    .stChatInput > div {
+        background-color: #2D2D2D !important;
+        border: 1px solid #FF6B6B !important;
+        border-radius: 20px !important;
+    }
+    
+    .stChatInput input {
+        background-color: #2D2D2D !important;
+        color: #FAFAFA !important;
+        font-family: 'Times New Roman', serif !important;
+        border: none !important;
+    }
+    
+    /* Selectbox */
+    .stSelectbox > div > div {
+        background-color: #2D2D2D !important;
+        color: #FAFAFA !important;
+        font-family: 'Times New Roman', serif !important;
+    }
+    
+    /* Text and markdown */
+    .stMarkdown, .stText {
+        color: #FAFAFA !important;
+        font-family: 'Times New Roman', serif !important;
+    }
+    
+    /* Divider */
+    hr {
+        border-color: #FF6B6B !important;
+        opacity: 0.5 !important;
+    }
+    
+    /* Footer */
+    .footer {
+        background-color: #1A1A1A;
+        padding: 20px;
+        border-radius: 10px;
+        border: 1px solid #333;
+        margin-top: 20px;
+    }
+    
+    /* Spinner */
+    .stSpinner {
+        color: #FF6B6B !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 class SecuroChatbot:
     def __init__(self):
         self.crime_categories = {
@@ -25,7 +137,7 @@ class SecuroChatbot:
                 "Keep valuable items out of sight from windows",
                 "Consider a security system or cameras",
                 "Secure all windows with proper locks",
-                "Don't advertise expensive purchases or vacations on social media"
+                "Don't advertise expensive purchases on social media"
             ],
             "personal_safety": [
                 "Stay aware of your surroundings at all times",
@@ -67,38 +179,33 @@ class SecuroChatbot:
         }
 
     def get_crime_reporting_info(self):
-        return """
-**🚨 How to Report a Crime:**
+        return """**How to Report a Crime**
 
-**Emergency Situations:**
-- **Call 911 immediately** for crimes in progress or emergencies
+**Emergency:** Call 911 immediately for crimes in progress
 
-**Non-Emergency Reporting:**
-- Police Station: (869) 465-2241
-- Online Reporting: Visit the Royal St. Christopher and Nevis Police Force website
+**Non-Emergency:** 
+• Police Station: (869) 465-2241
+• Online: Royal St. Christopher and Nevis Police Force website
 
-**Information to Include:**
-- Date, time, and exact location of incident
-- Detailed description of what happened
-- Suspect description (if safe to observe)
-- Names and contact info of witnesses
-- Photos of evidence (if safe to take)
+**What to Include:**
+• Date, time, and location
+• Description of incident
+• Suspect details (if safe to observe)
+• Witness information
+• Evidence (photos if safe)
 
-**Anonymous Reporting:**
-- Crime Stoppers Hotline: (869) 465-8474
-- Text tips to local police (check with department for number)
+**Anonymous Tips:** Crime Stoppers (869) 465-8474
 
-*Remember: Your safety comes first. Don't put yourself at risk to gather information.*
-        """
+Remember: Your safety comes first."""
 
     def get_safety_tips(self, category=None):
         if category and category in self.safety_tips:
             tips = self.safety_tips[category]
             category_name = category.replace('_', ' ').title()
             tip_list = "\n".join([f"• {tip}" for tip in tips])
-            return f"**🛡️ {category_name} Tips:**\n\n{tip_list}"
+            return f"**{category_name} Tips**\n\n{tip_list}"
         else:
-            all_tips = "**🛡️ Comprehensive Safety Guide:**\n\n"
+            all_tips = "**Safety Guide**\n\n"
             for cat, tips in self.safety_tips.items():
                 category_name = cat.replace('_', ' ').title()
                 all_tips += f"**{category_name}:**\n"
@@ -108,79 +215,64 @@ class SecuroChatbot:
     def get_crime_trends(self, year="2024"):
         if year in self.crime_trends:
             data = self.crime_trends[year]
-            return f"""
-**📊 Crime Statistics for {year}:**
+            return f"""**Crime Statistics {year}**
 
-**Overall Crime Data:**
-• Total Reported Crimes: {data['total_crimes']:,}
-• Change from Previous Year: {data.get('crime_rate_change', 'N/A')}
+**Total Crimes:** {data['total_crimes']:,} ({data.get('crime_rate_change', 'N/A')})
 
-**Crime Breakdown:**
-• Violent Crimes: {data['violent_crimes']} ({data['violent_crimes']/data['total_crimes']*100:.1f}%)
-• Property Crimes: {data['property_crimes']} ({data['property_crimes']/data['total_crimes']*100:.1f}%)
-• Drug-Related Crimes: {data['drug_crimes']} ({data['drug_crimes']/data['total_crimes']*100:.1f}%)
-• Traffic Crimes: {data.get('traffic_crimes', 'N/A')}
+**Breakdown:**
+• Violent: {data['violent_crimes']} ({data['violent_crimes']/data['total_crimes']*100:.1f}%)
+• Property: {data['property_crimes']} ({data['property_crimes']/data['total_crimes']*100:.1f}%)
+• Drug-Related: {data['drug_crimes']} ({data['drug_crimes']/data['total_crimes']*100:.1f}%)
+• Traffic: {data.get('traffic_crimes', 'N/A')}
 
-**Geographic Distribution:**
-• Most Affected Areas: {', '.join(data['areas_most_affected'])}
+**Most Affected Areas:** {', '.join(data['areas_most_affected'])}
 
-*Data compiled from Royal St. Christopher and Nevis Police Force reports*
-            """
-        return "❌ Crime trend data not available for that year. Available years: 2023, 2024"
+*Source: Royal St. Christopher and Nevis Police Force*"""
+        return "Crime data not available for that year. Available: 2023, 2024"
 
     def get_emergency_info(self):
-        return """
-**🚨 Emergency Contacts - St. Kitts & Nevis:**
+        return """**Emergency Contacts**
 
-**Immediate Emergencies:**
-• Police, Medical, Fire: **911**
+**Immediate Emergency:** 911 (Police, Medical, Fire)
 
 **Non-Emergency Services:**
-• Police Headquarters: (869) 465-2241
-• Joseph N. France General Hospital: (869) 465-2551
+• Police: (869) 465-2241
+• Hospital: (869) 465-2551
 • Alexandra Hospital (Nevis): (869) 469-5473
 
-**Specialized Services:**
+**Specialized:**
 • Coast Guard: (869) 465-8482
-• Tourist Police: (869) 465-2241
 • Crime Stoppers: (869) 465-8474
-
-**Additional Resources:**
 • Disaster Management: (869) 466-5100
-• Red Cross: (869) 465-2546
 
-*Save these numbers in your phone for quick access*
-        """
+Save these numbers in your phone."""
 
     def get_tourist_specific_info(self):
-        return """
-**🏖️ Tourist Safety Information:**
+        return """**Tourist Safety**
 
-**Common Tourist Areas to be Aware of:**
-• Stay in well-established tourist zones
+**General Safety:**
+• Stay in established tourist zones
 • Use reputable tour operators
 • Keep hotel contact information handy
 
-**Transportation Safety:**
+**Transportation:**
 • Use licensed taxi services
 • Avoid hitchhiking
-• Be cautious when renting vehicles
+• Be cautious with vehicle rentals
 
-**Beach and Water Safety:**
+**Beach Safety:**
 • Swim in designated areas only
-• Don't leave valuables unattended on beaches
-• Be aware of local weather conditions
+• Don't leave valuables unattended
+• Check weather conditions
 
-**Emergency Contacts for Tourists:**
+**Emergency Contacts:**
 • Tourist Police: (869) 465-2241
-• Your Hotel/Resort Security
-• Embassy/Consulate (for foreign nationals)
-        """
+• Hotel/Resort Security
+• Your Embassy/Consulate"""
 
     def process_user_input(self, user_input):
         user_input_lower = user_input.lower()
 
-        # Enhanced keyword matching with better responses
         if any(keyword in user_input_lower for keyword in ["report", "reporting", "file report", "how to report"]):
             return self.get_crime_reporting_info()
         
@@ -207,43 +299,38 @@ class SecuroChatbot:
             return self.get_tourist_specific_info()
         
         elif any(keyword in user_input_lower for keyword in ["hello", "hi", "hey", "start", "begin"]):
-            return """
-**Welcome to SECURO! 👋**
-
-I can help you with:
-• **Crime Reporting** - How and where to report incidents
-• **Safety Tips** - Personal, home, and online security advice
-• **Crime Statistics** - Recent trends and data for St. Kitts & Nevis
-• **Emergency Information** - Important contact numbers
-• **Tourist Safety** - Specific guidance for visitors
-
-What would you like to know about?
-            """
-        
-        else:
-            return """
-**🤔 I'm not sure about that specific question.**
+            return """**Welcome to SECURO**
 
 I can help you with:
 • Crime reporting procedures
-• Safety tips and prevention strategies
+• Safety tips and prevention
+• Crime statistics and trends
+• Emergency contact information
+• Tourist-specific safety advice
+
+What would you like to know?"""
+        
+        else:
+            return """I can help you with:
+
+• Crime reporting procedures
+• Safety tips and prevention strategies  
 • Crime trends and statistics
 • Emergency contact information
 • Tourist-specific safety advice
 
-Try asking something like:
+Try asking:
 - "How do I report a crime?"
 - "What are some safety tips?"
 - "Show me crime statistics"
-- "What are the emergency numbers?"
-            """
+- "What are the emergency numbers?" """
 
 
 def init_session_state():
     """Initialize session state variables"""
     if "messages" not in st.session_state:
         st.session_state.messages = [
-            {"role": "assistant", "content": "Welcome to SECURO! 🛡️ I'm your St. Kitts & Nevis Crime Intelligence Assistant. How can I help you stay safe today?"}
+            {"role": "assistant", "content": "Welcome to SECURO. I'm your St. Kitts & Nevis Crime Intelligence Assistant. How can I help you stay safe today?"}
         ]
     if "chatbot" not in st.session_state:
         st.session_state.chatbot = SecuroChatbot()
@@ -264,22 +351,17 @@ def add_message_and_rerun(role, content):
 
 
 def main():
-    # Set page config first, before any other Streamlit commands
-    try:
-        init_session_state()
-    except Exception as e:
-        st.error(f"Initialization error: {e}")
-        return
+    init_session_state()
 
-    # Header with styling
-    st.title("🛡️ SECURO")
+    # Header
+    st.title("🔍 SECURO")
     st.subheader("St. Kitts & Nevis Crime Intelligence Assistant")
     st.markdown("*Your connection to crime data, safety strategies, and reporting mechanisms.*")
     st.divider()
 
     chatbot = st.session_state.chatbot
 
-    # Sidebar with improved layout
+    # Sidebar
     with st.sidebar:
         st.header("👤 User Profile")
         user_type = st.selectbox(
@@ -308,7 +390,7 @@ def main():
             if st.button("📝 Report Crime", use_container_width=True):
                 add_message_and_rerun("assistant", chatbot.get_crime_reporting_info())
 
-        # Additional quick action for tourists
+        # Tourist-specific button
         if st.session_state.user_type == "Tourist/Visitor":
             if st.button("🏖️ Tourist Safety", use_container_width=True):
                 add_message_and_rerun("assistant", chatbot.get_tourist_specific_info())
@@ -316,10 +398,10 @@ def main():
         st.divider()
         st.markdown(f"**Current User:** {st.session_state.user_type}")
         
-        # Add clear chat button
+        # Clear chat button
         if st.button("🗑️ Clear Chat", use_container_width=True):
             st.session_state.messages = [
-                {"role": "assistant", "content": "Chat cleared! 🛡️ How can I help you stay safe today?"}
+                {"role": "assistant", "content": "Chat cleared. How can I help you stay safe today?"}
             ]
             st.rerun()
 
@@ -336,7 +418,7 @@ def main():
         st.session_state.messages.append({"role": "user", "content": prompt})
         
         # Get bot response
-        with st.spinner("SECURO is thinking..."):
+        with st.spinner("SECURO is analyzing..."):
             response = chatbot.process_user_input(prompt)
         
         # Add bot response
@@ -346,10 +428,10 @@ def main():
     # Footer
     st.divider()
     st.markdown("""
-    <div style='text-align: center; color: #666;'>
-    <p><strong>⚠️ IMPORTANT:</strong> SECURO provides information and guidance only.<br>
-    <strong>For real emergencies, always call 911 immediately.</strong></p>
-    <p><small>Data sources: Royal St. Christopher and Nevis Police Force | Last updated: 2024</small></p>
+    <div class="footer">
+    <p style="text-align: center; margin: 0;"><strong>⚠️ IMPORTANT:</strong> SECURO provides information and guidance only.</p>
+    <p style="text-align: center; margin: 5px 0 0 0;"><strong>For real emergencies, always call 911 immediately.</strong></p>
+    <p style="text-align: center; margin: 10px 0 0 0; font-size: 12px; opacity: 0.7;">Data sources: Royal St. Christopher and Nevis Police Force | Last updated: 2024</p>
     </div>
     """, unsafe_allow_html=True)
 
