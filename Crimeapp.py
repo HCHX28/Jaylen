@@ -8,114 +8,97 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for dark theme and Times New Roman font
+# Custom CSS for ALL BLACK theme
 st.markdown("""
 <style>
     /* Import Times New Roman font */
     @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap');
     
-    /* Main app background */
-    .main .block-container {
-        background-color: #0E1117;
-        color: #FAFAFA;
-        font-family: 'Times New Roman', serif;
-    }
-    
-    /* Sidebar styling */
-    .css-1d391kg {
-        background-color: #262730;
-    }
-    
-    /* Headers */
-    h1, h2, h3 {
-        color: #FF6B6B !important;
+    /* EVERYTHING BLACK */
+    .main, .main .block-container, .stApp, [data-testid="stAppViewContainer"] {
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
         font-family: 'Times New Roman', serif !important;
-        text-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
     }
     
-    /* Chat messages */
+    /* Sidebar BLACK */
+    .css-1d391kg, [data-testid="stSidebar"], .css-1lcbmhc {
+        background-color: #000000 !important;
+    }
+    
+    /* Headers WHITE text */
+    h1, h2, h3, h4, h5, h6 {
+        color: #FFFFFF !important;
+        font-family: 'Times New Roman', serif !important;
+    }
+    
+    /* Chat messages BLACK */
     .stChatMessage {
-        background-color: #1E1E1E !important;
-        border: 1px solid #333 !important;
-        border-radius: 10px !important;
+        background-color: #000000 !important;
+        border: 1px solid #333333 !important;
         font-family: 'Times New Roman', serif !important;
+        color: #FFFFFF !important;
     }
     
     /* User messages */
     .stChatMessage[data-testid="user-message"] {
-        background-color: #2D2D2D !important;
-        border-left: 3px solid #FF6B6B !important;
+        background-color: #000000 !important;
     }
     
     /* Assistant messages */
     .stChatMessage[data-testid="assistant-message"] {
-        background-color: #1A1A1A !important;
-        border-left: 3px solid #4ECDC4 !important;
+        background-color: #000000 !important;
     }
     
-    /* Buttons */
+    /* Buttons BLACK with WHITE text */
     .stButton > button {
-        background-color: #FF6B6B !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px !important;
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
+        border: 1px solid #FFFFFF !important;
         font-family: 'Times New Roman', serif !important;
         font-weight: bold !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 2px 5px rgba(255, 107, 107, 0.2) !important;
     }
     
     .stButton > button:hover {
-        background-color: #FF5252 !important;
-        box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4) !important;
-        transform: translateY(-2px) !important;
+        background-color: #333333 !important;
+        color: #FFFFFF !important;
     }
     
-    /* Chat input */
+    /* Chat input BLACK */
     .stChatInput > div {
-        background-color: #2D2D2D !important;
-        border: 1px solid #FF6B6B !important;
-        border-radius: 20px !important;
+        background-color: #000000 !important;
+        border: 1px solid #FFFFFF !important;
     }
     
     .stChatInput input {
-        background-color: #2D2D2D !important;
-        color: #FAFAFA !important;
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
         font-family: 'Times New Roman', serif !important;
-        border: none !important;
     }
     
-    /* Selectbox */
+    /* Selectbox BLACK */
     .stSelectbox > div > div {
-        background-color: #2D2D2D !important;
-        color: #FAFAFA !important;
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
+        font-family: 'Times New Roman', serif !important;
+        border: 1px solid #FFFFFF !important;
+    }
+    
+    /* All text WHITE */
+    .stMarkdown, .stText, p, span, div {
+        color: #FFFFFF !important;
         font-family: 'Times New Roman', serif !important;
     }
     
-    /* Text and markdown */
-    .stMarkdown, .stText {
-        color: #FAFAFA !important;
-        font-family: 'Times New Roman', serif !important;
-    }
-    
-    /* Divider */
+    /* Divider WHITE */
     hr {
-        border-color: #FF6B6B !important;
-        opacity: 0.5 !important;
+        border-color: #FFFFFF !important;
     }
     
-    /* Footer */
+    /* Footer BLACK */
     .footer {
-        background-color: #1A1A1A;
-        padding: 20px;
-        border-radius: 10px;
-        border: 1px solid #333;
-        margin-top: 20px;
-    }
-    
-    /* Spinner */
-    .stSpinner {
-        color: #FF6B6B !important;
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -354,16 +337,16 @@ def main():
     init_session_state()
 
     # Header
-    st.title("🔍 SECURO")
+    st.title("SECURO")
     st.subheader("St. Kitts & Nevis Crime Intelligence Assistant")
-    st.markdown("*Your connection to crime data, safety strategies, and reporting mechanisms.*")
+    st.markdown("Your connection to crime data, safety strategies, and reporting mechanisms.")
     st.divider()
 
     chatbot = st.session_state.chatbot
 
     # Sidebar
     with st.sidebar:
-        st.header("👤 User Profile")
+        st.header("User Profile")
         user_type = st.selectbox(
             "I am a:", 
             ["General Public", "Criminologist/Law Enforcement", "Tourist/Visitor"],
@@ -372,41 +355,41 @@ def main():
         st.session_state.user_type = user_type
 
         st.divider()
-        st.header("🚀 Quick Actions")
+        st.header("Quick Actions")
         
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("🚨 Emergency", use_container_width=True):
+            if st.button("Emergency", use_container_width=True):
                 add_message_and_rerun("assistant", chatbot.get_emergency_info())
 
-            if st.button("📊 Statistics", use_container_width=True):
+            if st.button("Statistics", use_container_width=True):
                 add_message_and_rerun("assistant", chatbot.get_crime_trends())
 
         with col2:
-            if st.button("🛡️ Safety Tips", use_container_width=True):
+            if st.button("Safety Tips", use_container_width=True):
                 add_message_and_rerun("assistant", chatbot.get_safety_tips())
 
-            if st.button("📝 Report Crime", use_container_width=True):
+            if st.button("Report Crime", use_container_width=True):
                 add_message_and_rerun("assistant", chatbot.get_crime_reporting_info())
 
         # Tourist-specific button
         if st.session_state.user_type == "Tourist/Visitor":
-            if st.button("🏖️ Tourist Safety", use_container_width=True):
+            if st.button("Tourist Safety", use_container_width=True):
                 add_message_and_rerun("assistant", chatbot.get_tourist_specific_info())
 
         st.divider()
         st.markdown(f"**Current User:** {st.session_state.user_type}")
         
         # Clear chat button
-        if st.button("🗑️ Clear Chat", use_container_width=True):
+        if st.button("Clear Chat", use_container_width=True):
             st.session_state.messages = [
                 {"role": "assistant", "content": "Chat cleared. How can I help you stay safe today?"}
             ]
             st.rerun()
 
     # Main chat interface
-    st.header("💬 Chat with SECURO")
+    st.header("Chat with SECURO")
     
     # Display chat messages
     for message in st.session_state.messages:
@@ -429,7 +412,7 @@ def main():
     st.divider()
     st.markdown("""
     <div class="footer">
-    <p style="text-align: center; margin: 0;"><strong>⚠️ IMPORTANT:</strong> SECURO provides information and guidance only.</p>
+    <p style="text-align: center; margin: 0;"><strong>IMPORTANT:</strong> SECURO provides information and guidance only.</p>
     <p style="text-align: center; margin: 5px 0 0 0;"><strong>For real emergencies, always call 911 immediately.</strong></p>
     <p style="text-align: center; margin: 10px 0 0 0; font-size: 12px; opacity: 0.7;">Data sources: Royal St. Christopher and Nevis Police Force | Last updated: 2024</p>
     </div>
