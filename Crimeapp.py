@@ -9,67 +9,7 @@ st.set_page_config(
 )
 
 # Custom CSS for ALL BLACK theme
-st.markdown(    def get_criminology_analysis(self):
-        return """**Advanced Criminological Analysis**
-
-**Crime Pattern Analysis:**
-• Peak Crime Hours: {peak_hours}
-• Seasonal Trends: {seasonal}
-• Demographic Factors: {demographics}
-• Recidivism Factors: {recidivism}
-
-**Prevention Strategy Effectiveness:**
-• Community Policing: {community}
-• Environmental Design: {environmental}
-• Social Programs: {social}
-• Technology Solutions: {technology}
-
-**Research Recommendations:**
-• Implement focused patrol during peak hours
-• Enhance lighting in high-crime areas
-• Expand youth intervention programs
-• Increase CCTV coverage in problem areas
-
-**Data Sources:**
-• Royal St. Christopher and Nevis Police Force
-• Caribbean Crime Observatory
-• Regional Crime Analysis Unit""".format(
-            peak_hours=self.criminology_data['crime_patterns']['peak_hours'],
-            seasonal=self.criminology_data['crime_patterns']['seasonal_trends'],
-            demographics=self.criminology_data['crime_patterns']['demographic_factors'],
-            recidivism=self.criminology_data['crime_patterns']['recidivism_factors'],
-            community=self.criminology_data['prevention_strategies']['community_policing'],
-            environmental=self.criminology_data['prevention_strategies']['environmental_design'],
-            social=self.criminology_data['prevention_strategies']['social_programs'],
-            technology=self.criminology_data['prevention_strategies']['technology']
-        )
-
-    def get_law_enforcement_tools(self):
-        return """**Law Enforcement Resources**
-
-**Investigation Tools:**
-• Crime Mapping Software Access
-• Forensic Evidence Guidelines
-• Interview Protocols
-• Case Management Systems
-
-**Intelligence Sharing:**
-• Regional Crime Database
-• INTERPOL Connections
-• Caribbean Police Network
-• Cross-Border Coordination
-
-**Training Resources:**
-• Crime Scene Investigation
-• Digital Forensics
-• Community Policing
-• Crisis Management
-
-**Contact for LE Personnel:**
-• Police HQ: (869) 465-2241
-• Detective Division: (869) 465-2242
-• Forensics Unit: (869) 465-2243
-• Intelligence Unit: (869) 465-2244"""
+st.markdown("""
 <style>
     /* Import Times New Roman font */
     @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap');
@@ -190,13 +130,11 @@ st.markdown(    def get_criminology_analysis(self):
 class SecuroChatbot:
     def __init__(self):
         self.crime_categories = {
-            "violent_crimes": ["homicide", "assault", "robbery", "domestic violence", "sexual assault"],
-            "property_crimes": ["burglary", "theft", "vandalism", "fraud", "arson"],
-            "drug_crimes": ["drug possession", "drug trafficking", "drug manufacturing", "drug distribution"],
-            "traffic_crimes": ["speeding", "drunk driving", "reckless driving", "vehicular homicide"],
-            "cyber_crimes": ["online fraud", "identity theft", "cyberbullying", "data breaches"],
-            "white_collar": ["money laundering", "embezzlement", "tax evasion", "corruption"],
-            "organized_crime": ["gang activity", "racketeering", "human trafficking"]
+            "violent_crimes": ["homicide", "assault", "robbery", "domestic violence"],
+            "property_crimes": ["burglary", "theft", "vandalism", "fraud"],
+            "drug_crimes": ["drug possession", "drug trafficking", "drug manufacturing"],
+            "traffic_crimes": ["speeding", "drunk driving", "reckless driving"],
+            "cyber_crimes": ["online fraud", "identity theft", "cyberbullying"]
         }
 
         self.safety_tips = {
@@ -234,9 +172,7 @@ class SecuroChatbot:
                 "drug_crimes": 280,
                 "traffic_crimes": 170,
                 "areas_most_affected": ["Basseterre", "Frigate Bay", "Sandy Point"],
-                "crime_rate_change": "+5.2%",
-                "clearance_rate": "67%",
-                "repeat_offender_rate": "23%"
+                "crime_rate_change": "+5.2%"
             },
             "2024": {
                 "total_crimes": 1180,
@@ -245,24 +181,7 @@ class SecuroChatbot:
                 "drug_crimes": 260,
                 "traffic_crimes": 165,
                 "areas_most_affected": ["Basseterre", "Charlestown", "Dieppe Bay"],
-                "crime_rate_change": "-5.6%",
-                "clearance_rate": "71%",
-                "repeat_offender_rate": "19%"
-            }
-        }
-
-        self.criminology_data = {
-            "crime_patterns": {
-                "peak_hours": "10 PM - 2 AM for violent crimes, 2 PM - 6 PM for property crimes",
-                "seasonal_trends": "Property crimes increase 15% during tourist season",
-                "demographic_factors": "18-25 age group represents 34% of offenders",
-                "recidivism_factors": "Substance abuse, unemployment, lack of education"
-            },
-            "prevention_strategies": {
-                "community_policing": "Neighborhood watch programs show 23% crime reduction",
-                "environmental_design": "Improved lighting reduces crime by 17%",
-                "social_programs": "Youth intervention programs reduce juvenile crime by 31%",
-                "technology": "CCTV systems have 89% effectiveness in evidence collection"
+                "crime_rate_change": "-5.6%"
             }
         }
 
@@ -305,43 +224,10 @@ Remember: Your safety comes first.
                 all_tips += "\n".join([f"• {tip}" for tip in tips]) + "\n\n"
             return all_tips
 
-    def get_crime_trends(self, year="2024", user_type="General Public"):
+    def get_crime_trends(self, year="2024"):
         if year in self.crime_trends:
             data = self.crime_trends[year]
-            
-            if user_type == "Criminologist/Law Enforcement":
-                # Advanced analysis for criminologists
-                return f"""**Professional Crime Analysis {year}**
-
-**Statistical Overview:**
-• Total Crimes: {data['total_crimes']:,} ({data.get('crime_rate_change', 'N/A')})
-• Clearance Rate: {data.get('clearance_rate', 'N/A')}
-• Repeat Offender Rate: {data.get('repeat_offender_rate', 'N/A')}
-
-**Crime Distribution:**
-• Violent: {data['violent_crimes']} ({data['violent_crimes']/data['total_crimes']*100:.1f}%)
-• Property: {data['property_crimes']} ({data['property_crimes']/data['total_crimes']*100:.1f}%)
-• Drug-Related: {data['drug_crimes']} ({data['drug_crimes']/data['total_crimes']*100:.1f}%)
-• Traffic: {data.get('traffic_crimes', 'N/A')}
-
-**Geographic Analysis:**
-• High-Crime Areas: {', '.join(data['areas_most_affected'])}
-• Crime Density: Basseterre shows highest concentration
-
-**Criminological Insights:**
-• Peak Crime Hours: {self.criminology_data['crime_patterns']['peak_hours']}
-• Seasonal Patterns: {self.criminology_data['crime_patterns']['seasonal_trends']}
-• Demographic Profile: {self.criminology_data['crime_patterns']['demographic_factors']}
-
-**Prevention Effectiveness:**
-• Community Policing: {self.criminology_data['prevention_strategies']['community_policing']}
-• Environmental Design: {self.criminology_data['prevention_strategies']['environmental_design']}
-
-*Data compiled from Royal St. Christopher and Nevis Police Force*"""
-            
-            else:
-                # Simplified version for general public
-                return f"""**Crime Statistics {year}**
+            return f"""**Crime Statistics {year}**
 
 **Total Crimes:** {data['total_crimes']:,} ({data.get('crime_rate_change', 'N/A')})
 
@@ -352,9 +238,6 @@ Remember: Your safety comes first.
 • Traffic: {data.get('traffic_crimes', 'N/A')}
 
 **Most Affected Areas:** {', '.join(data['areas_most_affected'])}
-
-**What This Means:**
-Crime has decreased by 5.6% compared to last year. Property crimes are most common, followed by drug-related offenses. Stay vigilant in Basseterre, Charlestown, and Dieppe Bay areas.
 
 *Source: Royal St. Christopher and Nevis Police Force*"""
         return "Crime data not available for that year. Available: 2023, 2024"
@@ -403,7 +286,7 @@ Save these numbers in your phone.
 • Hotel/Resort Security
 • Your Embassy/Consulate"""
 
-    def process_user_input(self, user_input, user_type="General Public"):
+    def process_user_input(self, user_input):
         user_input_lower = user_input.lower()
 
         if any(keyword in user_input_lower for keyword in ["report", "reporting", "file report", "how to report"]):
@@ -421,40 +304,18 @@ Save these numbers in your phone.
         
         elif any(keyword in user_input_lower for keyword in ["trends", "statistics", "crime rates", "data", "stats"]):
             if "2023" in user_input_lower:
-                return self.get_crime_trends("2023", user_type)
+                return self.get_crime_trends("2023")
             else:
-                return self.get_crime_trends("2024", user_type)
+                return self.get_crime_trends("2024")
         
         elif any(keyword in user_input_lower for keyword in ["emergency", "911", "help", "contact", "phone"]):
             return self.get_emergency_info()
         
         elif any(keyword in user_input_lower for keyword in ["tourist", "visitor", "vacation", "travel"]):
             return self.get_tourist_specific_info()
-            
-        # Advanced features for criminologists/law enforcement
-        elif user_type == "Criminologist/Law Enforcement":
-            if any(keyword in user_input_lower for keyword in ["analysis", "criminology", "patterns", "research"]):
-                return self.get_criminology_analysis()
-            elif any(keyword in user_input_lower for keyword in ["tools", "resources", "investigation", "forensics"]):
-                return self.get_law_enforcement_tools()
-            elif any(keyword in user_input_lower for keyword in ["clearance", "solve rate", "effectiveness"]):
-                return self.get_crime_trends("2024", user_type)
         
         elif any(keyword in user_input_lower for keyword in ["hello", "hi", "hey", "start", "begin"]):
-            if user_type == "Criminologist/Law Enforcement":
-                return """**Welcome to SECURO - Professional Access**
-
-Advanced features available:
-• Comprehensive crime analysis and patterns
-• Law enforcement tools and resources  
-• Detailed statistical breakdowns
-• Criminological research data
-• Investigation support resources
-• Intelligence sharing protocols
-
-What type of analysis do you need?"""
-            else:
-                return """**Welcome to SECURO**
+            return """**Welcome to SECURO**
 
 I can help you with:
 • Crime reporting procedures
@@ -466,23 +327,7 @@ I can help you with:
 What would you like to know?"""
         
         else:
-            if user_type == "Criminologist/Law Enforcement":
-                return """**Professional Features Available:**
-
-• Crime pattern analysis and research data
-• Law enforcement tools and resources
-• Advanced statistical breakdowns  
-• Criminological insights and trends
-• Investigation support materials
-• Intelligence sharing information
-
-Try asking:
-- "Show me crime analysis"
-- "What law enforcement tools are available?"
-- "Crime patterns and statistics"
-- "Investigation resources" """
-            else:
-                return """I can help you with:
+            return """I can help you with:
 
 • Crime reporting procedures
 • Safety tips and prevention strategies  
@@ -554,7 +399,7 @@ def main():
             if st.button("Statistics", use_container_width=True):
                 # Open external statistics link
                 st.markdown('<a href="https://police.kn/media/statistics" target="_blank">Opening Police Statistics...</a>', unsafe_allow_html=True)
-                add_message_and_rerun("assistant", "Opening official police statistics. You can also view current crime trends below:\n\n" + chatbot.get_crime_trends("2024", st.session_state.user_type))
+                add_message_and_rerun("assistant", "Opening official police statistics. You can also view current crime trends below:\n\n" + chatbot.get_crime_trends())
 
         with col2:
             if st.button("Safety Tips", use_container_width=True):
@@ -563,16 +408,8 @@ def main():
             if st.button("Report Crime", use_container_width=True):
                 add_message_and_rerun("assistant", chatbot.get_crime_reporting_info())
 
-        # Professional features for criminologists/law enforcement
-        if st.session_state.user_type == "Criminologist/Law Enforcement":
-            if st.button("Crime Analysis", use_container_width=True):
-                add_message_and_rerun("assistant", chatbot.get_criminology_analysis())
-                
-            if st.button("LE Resources", use_container_width=True):
-                add_message_and_rerun("assistant", chatbot.get_law_enforcement_tools())
-
         # Tourist-specific button
-        elif st.session_state.user_type == "Tourist/Visitor":
+        if st.session_state.user_type == "Tourist/Visitor":
             if st.button("Tourist Safety", use_container_width=True):
                 add_message_and_rerun("assistant", chatbot.get_tourist_specific_info())
 
@@ -600,7 +437,7 @@ def main():
         
         # Get bot response
         with st.spinner("SECURO is analyzing..."):
-            response = chatbot.process_user_input(prompt, st.session_state.user_type)
+            response = chatbot.process_user_input(prompt)
         
         # Add bot response
         st.session_state.messages.append({"role": "assistant", "content": response})
