@@ -3,4 +3,3 @@ requests
 pandas
 folium
 streamlit-folium
-matplotlib>=3.5.0
