@@ -1,7 +1,6 @@
-streamlit==1.32.0
-requests==2.31.0
-matplotlib==3.8.3
-pandas==2.2.1
-folium==0.16.0
-streamlit-folium==0.19.0
-plotly==5.19.0
+streamlit
+requests
+pandas
+folium
+streamlit-folium
+matplotlib>=3.5.0
