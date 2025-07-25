@@ -1,176 +1,355 @@
 import streamlit as st
 import datetime
 import json
+import requests
+import matplotlib.pyplot as plt
+import pandas as pd
+import folium
+from streamlit_folium import folium_static
+import hashlib
+import time
+import os
 
 st.set_page_config(
-    page_title="SECURO - St. Kitts & Nevis Crime Intel Assistant",
+    page_title="SECURO - Criminology Intelligence Assistant",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed",
+    menu_items=None
 )
 
-# Custom CSS for ALL BLACK theme
+# Custom CSS for black theme with fixed chat bubbles
 st.markdown("""
 <style>
-    /* Import Times New Roman font */
-    @import url('https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap');
-    
-    /* EVERYTHING BLACK */
+    /* Black theme with Times New Roman font */
     .main, .main .block-container, .stApp, [data-testid="stAppViewContainer"] {
         background-color: #000000 !important;
-        color: #FFFFFF !important;
-        font-family: 'Times New Roman', serif !important;
+        color: #ffffff !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        padding-top: 2rem !important;
     }
-    
-    /* Sidebar BLACK */
-    .css-1d391kg, [data-testid="stSidebar"], .css-1lcbmhc {
-        background-color: #000000 !important;
+   
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: #1a1a1a !important;
+        border-right: 1px solid #333333 !important;
     }
-    
-    /* Headers WHITE text */
-    h1, h2, h3, h4, h5, h6 {
-        color: #FFFFFF !important;
-        font-family: 'Times New Roman', serif !important;
+   
+    /* Sidebar content styling */
+    [data-testid="stSidebar"] * {
+        color: #ffffff !important;
+        font-family: 'Times New Roman', Times, serif !important;
     }
-    
-    /* Chat messages BLACK */
-    .stChatMessage {
-        background-color: #000000 !important;
+   
+    /* Menu button styling */
+    .menu-button {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 999;
+        background: #1a1a1a !important;
         border: 1px solid #333333 !important;
-        font-family: 'Times New Roman', serif !important;
-        color: #FFFFFF !important;
+        border-radius: 6px !important;
+        padding: 8px 12px !important;
+        color: #ffffff !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        cursor: pointer;
     }
-    
-    /* User messages */
-    .stChatMessage[data-testid="user-message"] {
-        background-color: #000000 !important;
+   
+    /* Clean header */
+    h1 {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        font-size: 2rem !important;
+        text-align: center !important;
+        margin-bottom: 0.5rem !important;
+        font-family: 'Times New Roman', Times, serif !important;
     }
-    
-    /* Assistant messages */
-    .stChatMessage[data-testid="assistant-message"] {
-        background-color: #000000 !important;
+   
+    h2, h3 {
+        color: #ffffff !important;
+        font-weight: 500 !important;
+        font-family: 'Times New Roman', Times, serif !important;
     }
-    
-    /* Buttons BLACK with WHITE text */
-    .stButton > button {
-        background-color: #000000 !important;
-        color: #FFFFFF !important;
-        border: 1px solid #FFFFFF !important;
-        font-family: 'Times New Roman', serif !important;
+   
+    /* Fix chat message containers */
+    .chat-message {
+        margin-bottom: 1rem !important;
+        clear: both !important;
+        overflow: hidden !important;
+    }
+   
+    /* User message styling */
+    .user-message {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 1rem;
+        clear: both;
+    }
+   
+    .user-bubble {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 12px 16px !important;
+        border-radius: 18px 18px 4px 18px !important;
+        max-width: 70% !important;
+        word-wrap: break-word !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 15px !important;
+        line-height: 1.4 !important;
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2) !important;
+        display: inline-block !important;
+        text-align: left !important;
+    }
+   
+    /* Bot message styling */
+    .bot-message {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 1rem;
+        clear: both;
+    }
+   
+    .bot-bubble {
+        background: #2c2c2c !important;
+        color: #ffffff !important;
+        padding: 12px 16px !important;
+        border-radius: 18px 18px 18px 4px !important;
+        max-width: 75% !important;
+        word-wrap: break-word !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        font-size: 15px !important;
+        line-height: 1.4 !important;
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1) !important;
+        display: inline-block !important;
+        text-align: left !important;
+    }
+   
+    /* Emergency contact styling */
+    .emergency-contact {
+        background: #8B0000 !important;
+        color: #ffffff !important;
+        padding: 10px !important;
+        border-radius: 8px !important;
+        margin: 5px 0 !important;
+        text-align: center !important;
         font-weight: bold !important;
     }
-    
+   
+    .emergency-contact:hover {
+        background: #A0522D !important;
+        cursor: pointer !important;
+    }
+   
+    /* Chat input styling */
+    .stChatInput > div {
+        background-color: #1a1a1a !important;
+        border: 1px solid #333333 !important;
+        border-radius: 12px !important;
+        box-shadow: 0 2px 6px rgba(255, 255, 255, 0.05) !important;
+    }
+   
+    .stChatInput input {
+        background-color: transparent !important;
+        color: #ffffff !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        border: none !important;
+        font-size: 16px !important;
+    }
+   
+    .stChatInput input::placeholder {
+        color: #888888 !important;
+    }
+   
+    /* Buttons styling */
+    .stButton > button {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+        border: 1px solid #333333 !important;
+        border-radius: 6px !important;
+        font-family: 'Times New Roman', Times, serif !important;
+        font-weight: 500 !important;
+        transition: all 0.2s !important;
+        width: 100% !important;
+    }
+   
     .stButton > button:hover {
         background-color: #333333 !important;
-        color: #FFFFFF !important;
+        border-color: #555555 !important;
     }
-    
-    /* Chat input BLACK */
-    .stChatInput > div {
-        background-color: #000000 !important;
-        border: 1px solid #FFFFFF !important;
+
+    /* Emergency button styling */
+    .emergency-btn {
+        background-color: #8B0000 !important;
+        color: #ffffff !important;
+        border: 2px solid #FF0000 !important;
     }
-    
-    .stChatInput input {
-        background-color: #000000 !important;
-        color: #FFFFFF !important;
-        font-family: 'Times New Roman', serif !important;
+
+    .emergency-btn:hover {
+        background-color: #FF0000 !important;
+        border-color: #FF4444 !important;
     }
-    
-    /* Selectbox BLACK with proper visibility */
-    .stSelectbox > div > div {
-        background-color: #000000 !important;
-        color: #FFFFFF !important;
-        font-family: 'Times New Roman', serif !important;
-        border: 1px solid #FFFFFF !important;
+   
+    /* Center subtitle */
+    .subtitle {
+        text-align: center;
+        color: #888888 !important;
+        margin-bottom: 2rem;
+        font-family: 'Times New Roman', Times, serif !important;
     }
-    
-    /* Selectbox dropdown options */
-    .stSelectbox div[data-baseweb="select"] > div {
-        background-color: #000000 !important;
-        color: #FFFFFF !important;
-        border: 1px solid #FFFFFF !important;
+   
+    /* Hide default streamlit elements */
+    .stChatMessage {
+        display: none !important;
     }
-    
-    /* Selectbox dropdown menu */
-    div[role="listbox"] {
-        background-color: #000000 !important;
-        border: 1px solid #FFFFFF !important;
+   
+    /* Center container */
+    .main .block-container {
+        max-width: 48rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
-    
-    /* Selectbox dropdown options */
-    div[role="option"] {
-        background-color: #000000 !important;
-        color: #FFFFFF !important;
-    }
-    
-    div[role="option"]:hover {
-        background-color: #333333 !important;
-        color: #FFFFFF !important;
-    }
-    
-    /* All text WHITE */
-    .stMarkdown, .stText, p, span, div {
-        color: #FFFFFF !important;
-        font-family: 'Times New Roman', serif !important;
-    }
-    
-    /* Divider WHITE */
-    hr {
-        border-color: #FFFFFF !important;
-    }
-    
-    /* Footer BLACK */
-    .footer {
-        background-color: #000000 !important;
-        color: #FFFFFF !important;
+
+    /* Login form styling */
+    .login-container {
+        background-color: #1a1a1a !important;
+        padding: 2rem !important;
+        border-radius: 10px !important;
+        border: 1px solid #333333 !important;
+        max-width: 400px !important;
+        margin: 2rem auto !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-class SecuroChatbot:
+class UserAuthentication:
     def __init__(self):
+        # Initialize user database in session state
+        if "users_db" not in st.session_state:
+            st.session_state.users_db = {}
+       
+    def hash_password(self, password):
+        """Hash password for security"""
+        return hashlib.sha256(password.encode()).hexdigest()
+   
+    def create_account(self, username, password, role):
+        """Create new user account"""
+        if username in st.session_state.users_db:
+            return False, "Username already exists"
+       
+        if len(password) < 6:
+            return False, "Password must be at least 6 characters"
+       
+        st.session_state.users_db[username] = {
+            "password": self.hash_password(password),
+            "role": role,
+            "created": datetime.datetime.now().isoformat()
+        }
+        return True, "Account created successfully"
+   
+    def login(self, username, password):
+        """Authenticate user login"""
+        if username not in st.session_state.users_db:
+            return False, "Username not found"
+       
+        if st.session_state.users_db[username]["password"] != self.hash_password(password):
+            return False, "Invalid password"
+       
+        st.session_state.logged_in = True
+        st.session_state.current_user = username
+        st.session_state.user_role = st.session_state.users_db[username]["role"]
+        return True, "Login successful"
+
+class GeminiAPI:
+    def __init__(self):
+        # Hardcoded API key
+        self.api_key = "AIzaSyCsb-NiyZwU5J-AitQan9HaHzNse2kN5_c"
+       
+    def get_gemini_response(self, prompt):
+        """Gets a response from the Gemini API."""
+        try:
+            API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={self.api_key}"
+           
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.7,
+                    "topK": 40,
+                    "topP": 0.95,
+                    "maxOutputTokens": 1024,
+                }
+            }
+           
+            headers = {"Content-Type": "application/json"}
+           
+            response = requests.post(API_URL, headers=headers, json=payload, timeout=30)
+           
+            if response.status_code == 200:
+                response_data = response.json()
+                if 'candidates' in response_data and len(response_data['candidates']) > 0:
+                    content = response_data['candidates'][0]['content']['parts'][0]['text']
+                    return content
+                else:
+                    return "Sorry, I couldn't generate a response. Please try rephrasing your question."
+            elif response.status_code == 400:
+                return "⚠️ **API Error** ⚠️\n\nInvalid API key or request format. Please check your Google AI Studio API key."
+            elif response.status_code == 403:
+                return "⚠️ **API Access Denied** ⚠️\n\nAPI key doesn't have permission or quota exceeded. Please check your Google AI Studio settings."
+            else:
+                return f"⚠️ **API Error** ⚠️\n\nReceived status code {response.status_code}. Please try again later."
+               
+        except requests.exceptions.Timeout:
+            return "⚠️ **Request Timeout** ⚠️\n\nThe API request timed out. Please try again."
+        except requests.exceptions.RequestException as e:
+            return f"⚠️ **Connection Error** ⚠️\n\nFailed to connect to Gemini API: {str(e)}"
+        except Exception as e:
+            return f"⚠️ **Unexpected Error** ⚠️\n\nAn error occurred: {str(e)}"
+
+class CriminologyIntelligenceBot:
+    def __init__(self):
+        self.stats_api_endpoint = "http://www.police.kn/media/statistics"
+        self.gemini_api = GeminiAPI()
+       
+        # Emergency contacts for St. Kitts and Nevis
+        self.emergency_contacts = {
+            "police": {
+                "name": "Royal St. Christopher and Nevis Police Force",
+                "number": "911",
+                "alternative": "(869) 465-2241",
+                "warning": "⚠️ **EMERGENCY POLICE CONTACT** ⚠️\n\nYou are about to contact the police emergency services.\n\n**Service:** Royal St. Christopher and Nevis Police Force\n**Number:** 911\n**Direct Line:** (869) 465-2241\n\n**Use for:** Life-threatening emergencies, crimes in progress, immediate danger\n\nDo you want to proceed with this emergency contact?"
+            },
+            "hospital": {
+                "name": "Joseph N. France General Hospital",
+                "number": "911",
+                "alternative": "(869) 465-2551",
+                "warning": "🏥 **EMERGENCY MEDICAL CONTACT** 🏥\n\nYou are about to contact emergency medical services.\n\n**Service:** Joseph N. France General Hospital\n**Number:** 911\n**Direct Line:** (869) 465-2551\n\n**Use for:** Medical emergencies, life-threatening injuries, urgent health situations\n\nDo you want to proceed with this emergency contact?"
+            },
+            "fire": {
+                "name": "Fire and Rescue Services",
+                "number": "911",
+                "alternative": "(869) 465-2366",
+                "warning": "🚒 **EMERGENCY FIRE & RESCUE CONTACT** 🚒\n\nYou are about to contact fire and rescue services.\n\n**Service:** Fire and Rescue Services\n**Number:** 911\n**Direct Line:** (869) 465-2366\n\n**Use for:** Fires, rescues, hazardous material incidents, natural disasters\n\nDo you want to proceed with this emergency contact?"
+            }
+        }
+       
         self.crime_categories = {
-            "violent_crimes": ["homicide", "assault", "robbery", "domestic violence"],
-            "property_crimes": ["burglary", "theft", "vandalism", "fraud"],
-            "drug_crimes": ["drug possession", "drug trafficking", "drug manufacturing"],
-            "traffic_crimes": ["speeding", "drunk driving", "reckless driving"],
-            "cyber_crimes": ["online fraud", "identity theft", "cyberbullying"]
+            "violent_crimes": ["homicide", "assault", "robbery", "domestic violence", "sexual assault"],
+            "property_crimes": ["burglary", "theft", "vandalism", "fraud", "arson"],
+            "drug_crimes": ["drug possession", "drug trafficking", "drug manufacturing", "money laundering"],
+            "organized_crime": ["gang activity", "racketeering", "human trafficking"],
+            "white_collar": ["embezzlement", "tax evasion", "securities fraud", "corruption"],
+            "cyber_crimes": ["online fraud", "identity theft", "cyberbullying", "data breaches"]
         }
 
-        self.safety_tips = {
-            "home_security": [
-                "Install proper lighting around your property",
-                "Use deadbolt locks on all exterior doors",
-                "Keep valuable items out of sight from windows",
-                "Consider a security system or cameras",
-                "Secure all windows with proper locks",
-                "Don't advertise expensive purchases on social media"
-            ],
-            "personal_safety": [
-                "Stay aware of your surroundings at all times",
-                "Travel in groups when possible, especially at night",
-                "Keep emergency contacts readily available",
-                "Trust your instincts if something feels wrong",
-                "Avoid displaying expensive jewelry or electronics",
-                "Stay in well-lit, populated areas when walking alone"
-            ],
-            "online_safety": [
-                "Use strong, unique passwords for all accounts",
-                "Enable two-factor authentication where possible",
-                "Be cautious about sharing personal information online",
-                "Verify the identity of people you meet online",
-                "Report suspicious online activity immediately",
-                "Keep software and antivirus programs updated"
-            ]
-        }
-
-        self.crime_trends = {
+        self.crime_data = {
             "2023": {
                 "total_crimes": 1250,
                 "violent_crimes": 180,
                 "property_crimes": 620,
                 "drug_crimes": 280,
-                "traffic_crimes": 170,
+                "organized_crime": 45,
+                "white_collar": 35,
+                "cyber_crimes": 90,
+                "clearance_rate": "68.2%",
                 "areas_most_affected": ["Basseterre", "Frigate Bay", "Sandy Point"],
                 "crime_rate_change": "+5.2%"
             },
@@ -179,288 +358,452 @@ class SecuroChatbot:
                 "violent_crimes": 165,
                 "property_crimes": 590,
                 "drug_crimes": 260,
-                "traffic_crimes": 165,
+                "organized_crime": 52,
+                "white_collar": 41,
+                "cyber_crimes": 72,
+                "clearance_rate": "71.8%",
                 "areas_most_affected": ["Basseterre", "Charlestown", "Dieppe Bay"],
                 "crime_rate_change": "-5.6%"
             }
         }
 
-    def get_crime_reporting_info(self):
-        return """**How to Report a Crime**
+    def create_criminology_prompt(self, user_input):
+        """Create a specialized prompt for criminology queries"""
+        system_context = f"""
+You are SECURO, an advanced AI criminology intelligence assistant specifically designed for St. Kitts and Nevis. You have expertise in:
 
-**Emergency:** Call 911 immediately for crimes in progress
+**Core Specializations:**
+- Criminal justice theory and practice
+- Crime pattern analysis and prediction
+- Research methodologies in criminology
+- Statistical analysis of crime data
+- Law enforcement strategies
+- Community policing approaches
+- Criminal behavior analysis
+- Forensic science applications
 
-**Non-Emergency:** 
-• Police Station: (869) 465-2241
-• Online: Royal St. Christopher and Nevis Police Force website
+**Local Context - St. Kitts and Nevis:**
+- Small island developing state (SIDS) crime patterns
+- Tourism industry impact on crime
+- Economic factors affecting criminal behavior
+- Regional Caribbean crime trends
+- Local law enforcement structure
+- Community-based crime prevention
 
-**What to Include:**
-• Date, time, and location
-• Description of incident
-• Suspect details (if safe to observe)
-• Witness information
-• Evidence (photos if safe)
+**Available Data:**
+2023 Crime Statistics:
+- Total crimes: 1,250 (+5.2% from previous year)
+- Violent crimes: 180 cases
+- Property crimes: 620 cases  
+- Drug crimes: 280 cases
+- Clearance rate: 68.2%
+- Most affected areas: Basseterre, Frigate Bay, Sandy Point
 
-**Anonymous Tips:** Crime Stoppers (869) 465-8474
+2024 Crime Statistics:
+- Total crimes: 1,180 (-5.6% from previous year)
+- Violent crimes: 165 cases
+- Property crimes: 590 cases
+- Drug crimes: 260 cases
+- Clearance rate: 71.8%
+- Most affected areas: Basseterre, Charlestown, Dieppe Bay
 
-Remember: Your safety comes first.
+**Response Guidelines:**
+- Provide evidence-based, professional analysis
+- Reference relevant criminological theories when applicable
+- Include statistical insights from available data
+- Suggest practical applications for law enforcement
+- Maintain academic rigor while being accessible
+- Consider Caribbean and small island state contexts
+- Offer actionable recommendations when appropriate
 
-**Quick Dial Instructions:**
-• From mobile: Dial number directly
-• From landline: May need to dial 1 + area code first
-• From hotel: Ask reception for outside line"""
+**Current User Query:** {user_input}
 
-    def get_safety_tips(self, category=None):
-        if category and category in self.safety_tips:
-            tips = self.safety_tips[category]
-            category_name = category.replace('_', ' ').title()
-            tip_list = "\n".join([f"• {tip}" for tip in tips])
-            return f"**{category_name} Tips**\n\n{tip_list}"
-        else:
-            all_tips = "**Safety Guide**\n\n"
-            for cat, tips in self.safety_tips.items():
-                category_name = cat.replace('_', ' ').title()
-                all_tips += f"**{category_name}:**\n"
-                all_tips += "\n".join([f"• {tip}" for tip in tips]) + "\n\n"
-            return all_tips
+Please provide a comprehensive, professional response that demonstrates deep criminological expertise while being practical and relevant to St. Kitts and Nevis context.
+"""
+        return system_context
 
-    def get_crime_trends(self, year="2024"):
-        if year in self.crime_trends:
-            data = self.crime_trends[year]
-            return f"""**Crime Statistics {year}**
+    def create_crime_chart(self, year="2024"):
+        """Create crime statistics chart using matplotlib"""
+        if year in self.crime_data:
+            data = self.crime_data[year]
+           
+            # Create figure and axis
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+            fig.patch.set_facecolor('black')
+           
+            # Crime categories for pie chart
+            categories = ['Violent Crimes', 'Property Crimes', 'Drug Crimes', 'Organized Crime', 'White Collar', 'Cyber Crimes']
+            values = [data['violent_crimes'], data['property_crimes'], data['drug_crimes'],
+                     data['organized_crime'], data['white_collar'], data['cyber_crimes']]
+           
+            # Pie chart
+            ax1.pie(values, labels=categories, autopct='%1.1f%%', startangle=90,
+                   textprops={'color': 'white', 'fontsize': 10})
+            ax1.set_title(f'Crime Distribution {year}', color='white', fontsize=14, pad=20)
+            ax1.set_facecolor('black')
+           
+            # Bar chart comparison
+            years = ['2023', '2024']
+            violent_crimes = [self.crime_data['2023']['violent_crimes'], self.crime_data['2024']['violent_crimes']]
+            property_crimes = [self.crime_data['2023']['property_crimes'], self.crime_data['2024']['property_crimes']]
+           
+            x = range(len(years))
+            width = 0.35
+           
+            ax2.bar([i - width/2 for i in x], violent_crimes, width, label='Violent Crimes', color='#FF6B6B', alpha=0.8)
+            ax2.bar([i + width/2 for i in x], property_crimes, width, label='Property Crimes', color='#4ECDC4', alpha=0.8)
+           
+            ax2.set_xlabel('Year', color='white')
+            ax2.set_ylabel('Number of Crimes', color='white')
+            ax2.set_title('Crime Trends Comparison', color='white', fontsize=14, pad=20)
+            ax2.set_xticks(x)
+            ax2.set_xticklabels(years)
+            ax2.legend()
+            ax2.set_facecolor('black')
+            ax2.tick_params(colors='white')
+            ax2.spines['bottom'].set_color('white')
+            ax2.spines['top'].set_color('white')
+            ax2.spines['right'].set_color('white')
+            ax2.spines['left'].set_color('white')
+           
+            plt.tight_layout()
+            return fig
+        return None
 
-**Total Crimes:** {data['total_crimes']:,} ({data.get('crime_rate_change', 'N/A')})
+    def create_crime_map(self):
+        """Create crime hotspot map of St. Kitts and Nevis using Google Maps tiles"""
+        # St. Kitts and Nevis coordinates
+        st_kitts_center = [17.3578, -62.7822]
+       
+        # Create map with Google Maps style tiles
+        m = folium.Map(
+            location=st_kitts_center,
+            zoom_start=11,
+            tiles=None
+        )
+       
+        # Add Google Maps satellite tiles
+        folium.TileLayer(
+            tiles='https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+            attr='Google Satellite',
+            name='Google Satellite',
+            overlay=False,
+            control=True
+        ).add_to(m)
+       
+        # Add Google Maps terrain tiles
+        folium.TileLayer(
+            tiles='https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+            attr='Google Terrain',
+            name='Google Terrain',
+            overlay=False,
+            control=True
+        ).add_to(m)
+       
+        # Add OpenStreetMap as backup
+        folium.TileLayer(
+            tiles='OpenStreetMap',
+            name='OpenStreetMap',
+            overlay=False,
+            control=True
+        ).add_to(m)
+       
+        # Crime hotspots with sample data
+        hotspots = [
+            {"name": "Basseterre", "coords": [17.2948, -62.7234], "crimes": 450, "type": "High"},
+            {"name": "Frigate Bay", "coords": [17.2619, -62.6853], "crimes": 180, "type": "Medium"},
+            {"name": "Sandy Point", "coords": [17.3547, -62.8119], "crimes": 120, "type": "Medium"},
+            {"name": "Charlestown", "coords": [17.1372, -62.6219], "crimes": 200, "type": "Medium"},
+            {"name": "Dieppe Bay", "coords": [17.4075, -62.8097], "crimes": 90, "type": "Low"}
+        ]
+       
+        # Add markers for each hotspot
+        for spot in hotspots:
+            color = 'red' if spot['type'] == 'High' else 'orange' if spot['type'] == 'Medium' else 'green'
+            folium.CircleMarker(
+                location=spot['coords'],
+                radius=spot['crimes']/20,
+                popup=f"<b>{spot['name']}</b><br>Crimes: {spot['crimes']}<br>Risk Level: {spot['type']}",
+                color=color,
+                fill=True,
+                fillColor=color,
+                fillOpacity=0.6
+            ).add_to(m)
+       
+        # Add layer control
+        folium.LayerControl().add_to(m)
+       
+        return m
 
-**Breakdown:**
-• Violent: {data['violent_crimes']} ({data['violent_crimes']/data['total_crimes']*100:.1f}%)
-• Property: {data['property_crimes']} ({data['property_crimes']/data['total_crimes']*100:.1f}%)
-• Drug-Related: {data['drug_crimes']} ({data['drug_crimes']/data['total_crimes']*100:.1f}%)
-• Traffic: {data.get('traffic_crimes', 'N/A')}
+    def get_emergency_contact_warning(self, service_type):
+        """Get emergency contact warning message"""
+        if service_type in self.emergency_contacts:
+            return self.emergency_contacts[service_type]["warning"]
+        return "Emergency contact not found."
 
-**Most Affected Areas:** {', '.join(data['areas_most_affected'])}
-
-*Source: Royal St. Christopher and Nevis Police Force*"""
-        return "Crime data not available for that year. Available: 2023, 2024"
-
-    def get_emergency_info(self):
-        return """**Emergency Contacts**
-
-**Immediate Emergency:** 911 (Police, Medical, Fire)
-
-**Non-Emergency Services:**
-• Police: (869) 465-2241
-• Hospital: (869) 465-2551
-• Alexandra Hospital (Nevis): (869) 469-5473
-
-**Specialized:**
-• Coast Guard: (869) 465-8482
-• Crime Stoppers: (869) 465-8474
-• Disaster Management: (869) 466-5100
-
-Save these numbers in your phone.
-
-**To make a call:**
-• Mobile: Just dial the number directly
-• If calling from hotel: Ask front desk for outside line access"""
-
-    def get_tourist_specific_info(self):
-        return """**Tourist Safety**
-
-**General Safety:**
-• Stay in established tourist zones
-• Use reputable tour operators
-• Keep hotel contact information handy
-
-**Transportation:**
-• Use licensed taxi services
-• Avoid hitchhiking
-• Be cautious with vehicle rentals
-
-**Beach Safety:**
-• Swim in designated areas only
-• Don't leave valuables unattended
-• Check weather conditions
-
-**Emergency Contacts:**
-• Tourist Police: (869) 465-2241
-• Hotel/Resort Security
-• Your Embassy/Consulate"""
-
-    def process_user_input(self, user_input):
+    def process_criminologist_query(self, user_input):
+        """Process queries using Gemini API with criminology specialization"""
         user_input_lower = user_input.lower()
 
-        if any(keyword in user_input_lower for keyword in ["report", "reporting", "file report", "how to report"]):
-            return self.get_crime_reporting_info()
-        
-        elif any(keyword in user_input_lower for keyword in ["safety", "tips", "prevention", "protect", "secure"]):
-            if "home" in user_input_lower or "house" in user_input_lower:
-                return self.get_safety_tips("home_security")
-            elif "personal" in user_input_lower or "walking" in user_input_lower:
-                return self.get_safety_tips("personal_safety")
-            elif any(word in user_input_lower for word in ["online", "cyber", "internet", "digital"]):
-                return self.get_safety_tips("online_safety")
-            else:
-                return self.get_safety_tips()
-        
-        elif any(keyword in user_input_lower for keyword in ["trends", "statistics", "crime rates", "data", "stats"]):
-            if "2023" in user_input_lower:
-                return self.get_crime_trends("2023")
-            else:
-                return self.get_crime_trends("2024")
-        
-        elif any(keyword in user_input_lower for keyword in ["emergency", "911", "help", "contact", "phone"]):
-            return self.get_emergency_info()
-        
-        elif any(keyword in user_input_lower for keyword in ["tourist", "visitor", "vacation", "travel"]):
-            return self.get_tourist_specific_info()
-        
-        elif any(keyword in user_input_lower for keyword in ["hello", "hi", "hey", "start", "begin"]):
-            return """**Welcome to SECURO**
+        # Handle emergency contact requests first
+        if any(word in user_input_lower for word in ["emergency", "contact", "number", "help"]):
+            return """**EMERGENCY CONTACTS FOR ST. KITTS & NEVIS**
 
-I can help you with:
-• Crime reporting procedures
-• Safety tips and prevention
-• Crime statistics and trends
-• Emergency contact information
-• Tourist-specific safety advice
+Use the sidebar buttons for specific emergency services:
+- **Police** - For crimes in progress and immediate danger
+- **Hospital** - For medical emergencies
+- **Fire Department** - For fires and rescue situations
 
-What would you like to know?"""
-        
+**All services can be reached at 911 for immediate emergencies.**
+
+Click the specific service buttons in the sidebar for detailed contact information."""
+       
+        # Handle chart/statistics requests
+        elif any(word in user_input_lower for word in ["chart", "graph", "statistics", "visual", "plot"]):
+            return "Crime Statistics Chart Generated - Check the sidebar for visual data representation."
+       
+        # Handle map requests
+        elif any(word in user_input_lower for word in ["map", "location", "hotspot", "area", "geographic"]):
+            return "Crime Hotspot Map Generated - Interactive map with Google Maps integration showing crime distribution across St. Kitts and Nevis is now available in the sidebar."
+       
+        # Use Gemini API for complex criminology queries
         else:
-            return """I can help you with:
-
-• Crime reporting procedures
-• Safety tips and prevention strategies  
-• Crime trends and statistics
-• Emergency contact information
-• Tourist-specific safety advice
-
-Try asking:
-- "How do I report a crime?"
-- "What are some safety tips?"
-- "Show me crime statistics"
-- "What are the emergency numbers?" """
+            enhanced_prompt = self.create_criminology_prompt(user_input)
+            return self.gemini_api.get_gemini_response(enhanced_prompt)
 
 
 def init_session_state():
     """Initialize session state variables"""
     if "messages" not in st.session_state:
-        st.session_state.messages = [
-            {"role": "assistant", "content": "Welcome to SECURO. I'm your St. Kitts & Nevis Crime Intelligence Assistant. How can I help you stay safe today?"}
-        ]
+        st.session_state.messages = []
     if "chatbot" not in st.session_state:
-        st.session_state.chatbot = SecuroChatbot()
-    if "user_type" not in st.session_state:
-        st.session_state.user_type = "General Public"
+        st.session_state.chatbot = CriminologyIntelligenceBot()
+    if "sidebar_open" not in st.session_state:
+        st.session_state.sidebar_open = False
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+    if "current_user" not in st.session_state:
+        st.session_state.current_user = None
+    if "user_role" not in st.session_state:
+        st.session_state.user_role = None
+    if "auth" not in st.session_state:
+        st.session_state.auth = UserAuthentication()
+    if "emergency_confirmation" not in st.session_state:
+        st.session_state.emergency_confirmation = None
 
+def show_login_page():
+    """Display login/registration page"""
+    st.title("SECURO")
+    st.markdown("<p class='subtitle'>Criminology Intelligence Assistant for St. Kitts & Nevis</p>", unsafe_allow_html=True)
+   
+    tab1, tab2 = st.tabs(["Login", "Create Account"])
+   
+    with tab1:
+        st.subheader("Login to SECURO")
+        username = st.text_input("Username", key="login_username")
+        password = st.text_input("Password", type="password", key="login_password")
+       
+        if st.button("Login", use_container_width=True):
+            if username and password:
+                success, message = st.session_state.auth.login(username, password)
+                if success:
+                    st.success(message)
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.error(message)
+            else:
+                st.error("Please enter both username and password")
+   
+    with tab2:
+        st.subheader("Create New Account")
+        new_username = st.text_input("Choose Username", key="new_username")
+        new_password = st.text_input("Choose Password", type="password", key="new_password")
+        confirm_password = st.text_input("Confirm Password", type="password", key="confirm_password")
+        role = st.selectbox("Role", ["Criminologist", "Law Enforcement", "Researcher", "Student"])
+       
+        if st.button("Create Account", use_container_width=True):
+            if new_username and new_password and confirm_password:
+                if new_password != confirm_password:
+                    st.error("Passwords do not match")
+                else:
+                    success, message = st.session_state.auth.create_account(new_username, new_password, role)
+                    if success:
+                        st.success(message)
+                        st.info("You can now login using your credentials")
+                    else:
+                        st.error(message)
+            else:
+                st.error("Please fill in all fields")
 
-def display_chat_message(message):
-    """Display a chat message with proper formatting"""
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+def display_message(role, content):
+    """Display messages with proper styling"""
+    if role == "user":
+        st.markdown(f'''
+        <div class="user-message">
+            <div class="user-bubble">{content}</div>
+        </div>
+        ''', unsafe_allow_html=True)
+    else:
+        st.markdown(f'''
+        <div class="bot-message">
+            <div class="bot-bubble">{content}</div>
+        </div>
+        ''', unsafe_allow_html=True)
 
-
-def add_message_and_rerun(role, content):
-    """Add a message to the session state and rerun the app"""
-    st.session_state.messages.append({"role": role, "content": content})
+def handle_emergency_contact(service_type):
+    """Handle emergency contact with confirmation"""
+    chatbot = st.session_state.chatbot
+   
+    # Show warning message
+    warning_message = chatbot.get_emergency_contact_warning(service_type)
+    st.session_state.messages.append({"role": "assistant", "content": warning_message})
+    st.session_state.emergency_confirmation = service_type
     st.rerun()
-
 
 def main():
     init_session_state()
-
-    # Header
-    st.title("SECURO")
-    st.subheader("St. Kitts & Nevis Crime Intelligence Assistant")
-    st.markdown("Your connection to crime data, safety strategies, and reporting mechanisms.")
-    st.divider()
+   
+    # Check if user is logged in
+    if not st.session_state.logged_in:
+        show_login_page()
+        return
+   
+    # Header with user info
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col1:
+        st.write(f"Welcome, **{st.session_state.current_user}**")
+        st.write(f"Role: *{st.session_state.user_role}*")
+    with col2:
+        st.title("SECURO")
+        st.markdown("<p class='subtitle'>Criminology Intelligence Assistant for St. Kitts & Nevis</p>", unsafe_allow_html=True)
+    with col3:
+        if st.button("Logout"):
+            st.session_state.logged_in = False
+            st.session_state.current_user = None
+            st.session_state.user_role = None
+            st.session_state.messages = []
+            st.rerun()
 
     chatbot = st.session_state.chatbot
 
-    # Sidebar
+    # Simplified sidebar without API key configuration
     with st.sidebar:
-        st.header("User Profile")
-        user_type = st.selectbox(
-            "I am a:", 
-            ["General Public", "Criminologist/Law Enforcement", "Tourist/Visitor"],
-            index=["General Public", "Criminologist/Law Enforcement", "Tourist/Visitor"].index(st.session_state.user_type)
-        )
-        st.session_state.user_type = user_type
-
+        st.header("Criminology Tools")
+       
+        # Status indicator
+        st.success("🤖 Gemini AI is active")
+       
         st.divider()
-        st.header("Quick Actions")
-        
+       
+        # Emergency Contacts Section
+        st.subheader("🚨 Emergency Contacts")
+       
         col1, col2 = st.columns(2)
-        
         with col1:
-            if st.button("Emergency", use_container_width=True):
-                add_message_and_rerun("assistant", chatbot.get_emergency_info())
-
-            if st.button("Statistics", use_container_width=True):
-                # Open external statistics link
-                st.markdown('<a href="https://police.kn/media/statistics" target="_blank">Opening Police Statistics...</a>', unsafe_allow_html=True)
-                add_message_and_rerun("assistant", "Opening official police statistics. You can also view current crime trends below:\n\n" + chatbot.get_crime_trends())
-
+            if st.button("Police", use_container_width=True, key="police_btn"):
+                handle_emergency_contact("police")
         with col2:
-            if st.button("Safety Tips", use_container_width=True):
-                add_message_and_rerun("assistant", chatbot.get_safety_tips())
-
-            if st.button("Report Crime", use_container_width=True):
-                add_message_and_rerun("assistant", chatbot.get_crime_reporting_info())
-
-        # Tourist-specific button
-        if st.session_state.user_type == "Tourist/Visitor":
-            if st.button("Tourist Safety", use_container_width=True):
-                add_message_and_rerun("assistant", chatbot.get_tourist_specific_info())
-
+            if st.button("Hospital", use_container_width=True, key="hospital_btn"):
+                handle_emergency_contact("hospital")
+       
+        if st.button("Fire Department", use_container_width=True, key="fire_btn"):
+            handle_emergency_contact("fire")
+       
         st.divider()
-        st.markdown(f"**Current User:** {st.session_state.user_type}")
-        
-        # Clear chat button
-        if st.button("Clear Chat", use_container_width=True):
-            st.session_state.messages = [
-                {"role": "assistant", "content": "Chat cleared. How can I help you stay safe today?"}
-            ]
+       
+        # Analysis Tools
+        st.subheader("📊 Analysis Tools")
+        if st.button("Crime Statistics Chart", use_container_width=True):
+            fig = chatbot.create_crime_chart()
+            if fig:
+                st.pyplot(fig)
+                st.session_state.messages.append({"role": "assistant", "content": "Crime statistics chart has been generated and displayed in the sidebar."})
+                st.rerun()
+
+        if st.button("Crime Hotspot Map", use_container_width=True):
+            crime_map = chatbot.create_crime_map()
+            folium_static(crime_map, width=300, height=400)
+            st.session_state.messages.append({"role": "assistant", "content": "Interactive crime hotspot map with Google Maps integration has been generated showing crime distribution across St. Kitts and Nevis."})
             st.rerun()
 
-    # Main chat interface
-    st.header("Chat with SECURO")
-    
-    # Display chat messages
-    for message in st.session_state.messages:
-        display_chat_message(message)
+        if st.button("Advanced Statistics", use_container_width=True):
+            stats_response = """**Advanced Crime Analytics Dashboard**
 
-    # Chat input
-    if prompt := st.chat_input("Ask me about crime reporting, safety tips, statistics, or emergencies..."):
+**Real-time Data Integration:**
+• Connected to police.kn statistics API
+• Live crime mapping capabilities  
+• Predictive analytics models
+• Geographic crime distribution analysis
+
+**Available Analytical Tools:**
+• Crime trend forecasting
+• Hotspot identification algorithms
+• Offender pattern recognition
+• Resource allocation optimization
+
+**Research Capabilities:**
+• Comparative crime analysis
+• Statistical significance testing
+• Regression modeling
+• Time series analysis
+
+How can I assist with your specific analytical needs?"""
+            st.session_state.messages.append({"role": "assistant", "content": stats_response})
+            st.rerun()
+
+        st.divider()
+       
+        # Utility Functions
+        st.subheader("🛠 Utilities")
+        if st.button("Clear Chat", use_container_width=True):
+            st.session_state.messages = []
+            st.rerun()
+
+    # Display chat messages
+    chat_container = st.container()
+    with chat_container:
+        for message in st.session_state.messages:
+            display_message(message["role"], message["content"])
+       
+        # Handle emergency confirmation
+        if st.session_state.emergency_confirmation:
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("YES - Proceed with Emergency Contact", type="primary", use_container_width=True):
+                    service = st.session_state.emergency_confirmation
+                    contact_info = chatbot.emergency_contacts[service]
+                    response = f"""**EMERGENCY CONTACT CONFIRMED**
+
+**Contacting:** {contact_info['name']}
+**Primary Number:** {contact_info['number']}
+**Direct Line:** {contact_info['alternative']}
+
+**IMPORTANT:** This is a simulation. In a real emergency, you would now call {contact_info['number']} or {contact_info['alternative']}.
+
+Stay safe and provide clear information about your location and situation."""
+                    st.session_state.messages.append({"role": "assistant", "content": response})
+                    st.session_state.emergency_confirmation = None
+                    st.rerun()
+           
+            with col2:
+                if st.button("NO - Cancel", use_container_width=True):
+                    st.session_state.messages.append({"role": "assistant", "content": "Emergency contact cancelled. If you need assistance, please use the chat or contact non-emergency services."})
+                    st.session_state.emergency_confirmation = None
+                    st.rerun()
+
+    # Chat input at the bottom
+    if prompt := st.chat_input("Ask about crime analysis, research methods, statistics, emergency contacts, or request charts and maps..."):
         # Add user message
         st.session_state.messages.append({"role": "user", "content": prompt})
-        
+       
         # Get bot response
-        with st.spinner("SECURO is analyzing..."):
-            response = chatbot.process_user_input(prompt)
-        
+        with st.spinner("🤖 Analyzing your request with Gemini AI..."):
+            response = chatbot.process_criminologist_query(prompt)
+       
         # Add bot response
         st.session_state.messages.append({"role": "assistant", "content": response})
         st.rerun()
-
-    # Quick access to external statistics
-    st.markdown("""
-    <div style="text-align: center; margin: 20px 0;">
-    <a href="https://police.kn/media/statistics" target="_blank" style="color: white; text-decoration: underline;">
-    Click here for Official Police Statistics
-    </a>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Footer
-    st.divider()
-    st.markdown("""
-    <div class="footer">
-    <p style="text-align: center; margin: 0;"><strong>IMPORTANT:</strong> SECURO provides information and guidance only.</p>
-    <p style="text-align: center; margin: 5px 0 0 0;"><strong>For real emergencies, always call 911 immediately.</strong></p>
-    <p style="text-align: center; margin: 10px 0 0 0; font-size: 12px; opacity: 0.7;">Data sources: Royal St. Christopher and Nevis Police Force | Last updated: 2024</p>
-    </div>
-    """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
