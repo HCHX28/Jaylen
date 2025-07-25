@@ -1,5 +1,6 @@
 streamlit
 requests
+matplotlib.pyplot
 pandas
 folium
 streamlit-folium
